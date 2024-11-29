@@ -1,0 +1,96 @@
+{
+  "giovani": {
+    "name": "Giovani",
+    "timestamp": "1970-01-01",
+    "description": "Stable version with improved code organization and modular architecture",
+    "features": [
+      "Modular file structure",
+      "Reusable components",
+      "Utility functions",
+      "Form validation",
+      "API integration",
+      "Authentication flow",
+      "User management",
+      "Profile handling",
+      "Map integration",
+      "Data visualization",
+      "Responsive design",
+      "Error handling"
+    ]
+  },
+  "antonio": {
+    "name": "Antonio",
+    "timestamp": "1970-01-01",
+    "description": "Enhanced version with improved form handling, validation, and better component organization",
+    "features": [
+      "Reusable form components",
+      "Form validation with Zod",
+      "React Hook Form integration",
+      "Improved error handling",
+      "Toast notifications",
+      "Better TypeScript types",
+      "Modular code organization",
+      "Enhanced user feedback",
+      "Shared form fields",
+      "Custom form hooks",
+      "API integration",
+      "Responsive design"
+    ]
+  },
+  "backup3": {
+    "name": "Backup 3",
+    "timestamp": "1970-01-01",
+    "description": "Improved form handling with React Hook Form, Zod validation, and better error management",
+    "features": [
+      "Form validation with Zod",
+      "React Hook Form integration",
+      "Improved error handling",
+      "Toast notifications",
+      "Better TypeScript types",
+      "Modular code organization",
+      "Enhanced user feedback"
+    ]
+  },
+  "backup2": {
+    "name": "Backup 2",
+    "timestamp": "1970-01-01",
+    "description": "Enhanced version with modern UI updates, improved form fields, and API integration",
+    "features": [
+      "Modern shadow styles",
+      "Enhanced form field icons",
+      "Improved map statistics display",
+      "API service integration",
+      "TypeScript API types",
+      "Laravel backend support",
+      "Removed dashboard CTA button",
+      "Updated documentation"
+    ]
+  },
+  "backup": {
+    "name": "Backup",
+    "timestamp": "1970-01-01",
+    "description": "Stable backup version with all core features implemented",
+    "features": [
+      "Complete user interface implementation",
+      "Responsive design for all screen sizes",
+      "Advanced filtering system",
+      "Navigation components",
+      "Table layouts and data display",
+      "Profile and notification systems"
+    ]
+  },
+  "biga": {
+    "name": "Biga",
+    "timestamp": "1970-01-01",
+    "description": "Mobile-responsive version with collapsible sidebar, bottom navigation, and enhanced filtering",
+    "features": [
+      "Collapsible sidebar with icon-only mode",
+      "Mobile bottom navigation",
+      "Responsive layout improvements",
+      "Enhanced navigation components",
+      "Advanced filtering system",
+      "Profile dropdown menu",
+      "Compact table layouts"
+    ]
+  }
+}
