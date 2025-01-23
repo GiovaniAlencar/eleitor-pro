@@ -1,134 +1,89 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { voterSchema, VoterFormData } from '../../schemas/voter.schema';
+import { useVoterForm } from '../../hooks/useVoterForm';
 import VoterFormFields from '../../components/Voters/VoterFormFields';
 import PageHeader from '../../components/Common/PageHeader';
-import Breadcrumb from '../../components/Common/Breadcrumb';
 import { Toaster } from 'sonner';
 import { voterService } from '../../services/voter.service';
-import LoadingScreen from '../../components/Common/LoadingScreen';
-import { useViaCep } from '../../hooks/useViaCep';
-import { formatDate } from '../../utils/date';
-import { formatPhone, formatCEP } from '../../utils/format';
-import { notificationService } from '../../services/notification.service';
+import LoadingScreen from '../../components/Common/LoadingScreen'; // Tela de carregamento
 
 export default function EditarEleitor() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const { searchCep, loading: loadingCep } = useViaCep();
+  const { form, onSubmit, handleCepChange, loadingCep, parseFormData } = useVoterForm(true);
 
-  const form = useForm<VoterFormData>({
-    resolver: zodResolver(voterSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      whatsapp: '',
-      zip_code: '',
-      address: '',
-      number: '',
-      neighborhood: '',
-      city: '',
-      birth_date: '',
-      marital_status: ''
-    }
-  });
-
-  const handleCepChange = async (cep: string) => {
-    if (cep.length === 9) {
-      const address = await searchCep(cep);
-      if (address) {
-        form.setValue('address', address.address);
-        form.setValue('neighborhood', address.neighborhood);
-        form.setValue('city', address.city);
-      }
-    }
-  };
-
-  const onSubmit = async (data: VoterFormData) => {
-    try {
-      const formattedData = {
-        ...data,
-        id: Number(id), // Include the ID in the form data
-        birth_date: data.birth_date ? formatDate(data.birth_date, 'yyyy-MM-dd') : '',
-        whatsapp: data.whatsapp ? data.whatsapp.replace(/\D/g, '') : '',
-        zip_code: data.zip_code ? data.zip_code.replace(/\D/g, '') : ''
-      };
-
-      await voterService.updateVoter(Number(id), formattedData);
-      notificationService.success('Eleitor atualizado com sucesso!');
-      navigate('/eleitores');
-    } catch (error) {
-      console.error('Error updating voter:', error);
-      notificationService.error('Erro ao atualizar eleitor');
-    }
-  };
+  const [loading, setLoading] = useState(true);  // Estado de carregamento
+  const [error, setError] = useState<string | null>(null);  // Estado para erro
+  const [voterDataLoaded, setVoterDataLoaded] = useState(false); // Controla se os dados foram carregados
 
   useEffect(() => {
+    // Evita que a requisição seja feita sem id válido
+    if (!id) return;
+
     const loadVoter = async () => {
-      if (!id) return;
-      
+      // setLoading(true);
+      setError(null);  // Reseta o erro antes de tentar carregar os dados
       try {
-        setLoading(true);
-        const voter = await voterService.getVoterDetails(Number(id));
-
+        const response = await voterService.getVoterDetails(Number(id));
+        const voter = response.data;
         if (voter) {
-          const formattedData = {
-            ...voter,
-            id: Number(id),
-            whatsapp: formatPhone(voter.whatsapp || ''),
-            zip_code: formatCEP(voter.zip_code || ''),
-            birth_date: voter.birth_date ? formatDate(voter.birth_date) : ''
-          };
-
-          // Set form values
-          Object.keys(formattedData).forEach(key => {
-            form.setValue(key as keyof VoterFormData, formattedData[key]);
-          });
+          // Chamamos parseFormData apenas uma vez quando os dados estiverem carregados
+          parseFormData(voter); 
+          setVoterDataLoaded(true); // Marca que os dados foram carregados
+          setLoading(false); // Finaliza o carregamento
         }
       } catch (error) {
+        setError('Erro ao carregar os dados do eleitor.');
         console.error('Error loading voter:', error);
-        notificationService.error('Erro ao carregar dados do eleitor');
-        navigate('/eleitores');
+        navigate('/eleitores'); // Redireciona para a lista de eleitores em caso de erro
       } finally {
-        setLoading(false);
+        setLoading(false); // Finaliza o carregamento
       }
     };
 
     loadVoter();
-  }, [id, navigate, form.setValue]);
+  }, [id, navigate]);  // Evita que parseFormData cause re-renderizações infinitas
 
-  if (loading) {
-    return <LoadingScreen message="Carregando dados do eleitor..." />;
+  // Exibe a tela de erro se houver um erro
+  if (error) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
   }
 
-  const breadcrumbItems = [
-    { label: 'HOME', href: '/' },
-    { label: 'ELEITORES', href: '/eleitores' },
-    { label: 'EDITAR' }
-  ];
+  // Exibe a tela de carregamento enquanto os dados estão sendo carregados
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <LoadingScreen message="Carregando dados do eleitor..." /> {/* Componente de Loading */}
+      </div>
+    );
+  }
 
-  return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <Toaster position="top-right" />
-      
-      <Breadcrumb items={breadcrumbItems} />
-      
-      <PageHeader
-        title="Editar Eleitor"
-        subtitle="Atualize as informações do eleitor"
-        backTo="/eleitores"
-      />
+  // Exibe o formulário depois que os dados foram carregados
+  if (voterDataLoaded) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <Toaster position="top-right" />
 
-      <VoterFormFields
-        form={form}
-        onSubmit={onSubmit}
-        handleCepChange={handleCepChange}
-        loadingCep={loadingCep}
-        isEditing={true}
-      />
-    </div>
-  );
+        <PageHeader
+          title="Editar Eleitor"
+          subtitle="Atualize as informações do eleitor"
+          backTo="/eleitores"
+        />
+
+        <VoterFormFields
+          form={form}
+          onSubmit={onSubmit}
+          handleCepChange={handleCepChange}
+          loadingCep={loadingCep}
+          isEditing={true}
+        />
+      </div>
+    );
+  }
+
+  return null; // Retorna null se não estiver carregando nem com erro
 }

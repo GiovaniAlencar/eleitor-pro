@@ -16,10 +16,16 @@ export default function FilterButton({ options, onFilter }: FilterButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        buttonRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -30,13 +36,12 @@ export default function FilterButton({ options, onFilter }: FilterButtonProps) {
 
   const toggleOption = (value: string) => {
     const newSelected = selected.includes(value)
-      ? selected.filter(item => item !== value)
+      ? selected.filter((item) => item !== value)
       : [...selected, value];
     setSelected(newSelected);
     onFilter(newSelected);
   };
 
-  // Group options by their group property
   const groupedOptions = options.reduce((acc, option) => {
     const group = option.group || 'Outros';
     if (!acc[group]) {
@@ -47,8 +52,9 @@ export default function FilterButton({ options, onFilter }: FilterButtonProps) {
   }, {} as Record<string, FilterOption[]>);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${
           selected.length > 0
@@ -66,7 +72,10 @@ export default function FilterButton({ options, onFilter }: FilterButtonProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+        <div
+          ref={dropdownRef}
+          className="absolute mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 right-0"
+        >
           <div className="p-2">
             {selected.length > 0 && (
               <button

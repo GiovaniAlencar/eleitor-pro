@@ -1,4 +1,4 @@
-import { Trash2, Edit2 } from 'lucide-react';
+import { Trash2, Edit2, AlertCircle } from 'lucide-react';
 import { LeaderProfile } from '../../types/api';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../../utils/date';
@@ -7,24 +7,42 @@ import { formatCEP } from '../../utils/format';
 interface LeaderProfileInfoProps {
   leader: LeaderProfile;
   onDelete: () => void;
+  onStatusChange: () => void; // Callback para alterar o status do líder
 }
 
-export default function LeaderProfileInfo({ leader, onDelete }: LeaderProfileInfoProps) {
+export default function LeaderProfileInfo({ leader, onDelete, onStatusChange }: LeaderProfileInfoProps) {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8">
-      <div className="flex justify-between items-start mb-8">
-        <h3 className="text-xl font-bold">Informações Pessoais</h3>
-        <div className="flex gap-3">
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      {/* Botões no mobile ficam acima do título */}
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center mb-4">
+        <h3 className="text-lg font-bold mb-4 sm:mb-0">Informações Pessoais</h3>
+        <div className="flex flex-wrap gap-2 justify-start">
+          {/* Botão de ativar/desabilitar */}
+          <button
+            onClick={onStatusChange}
+            className={`flex items-center gap-1 px-4 py-2 text-sm ${
+              leader.status === 'active'
+                ? 'text-yellow-600 hover:text-white border border-yellow-200 hover:bg-yellow-600'
+                : 'text-green-600 hover:text-white border border-green-200 hover:bg-green-600'
+            } rounded transition-all duration-200`}
+          >
+            <AlertCircle className="w-4 h-4" />
+            {leader.status === 'active' ? 'Desabilitar' : 'Ativar'}
+          </button>
+
+          {/* Botão de excluir */}
           <button
             onClick={onDelete}
-            className="flex items-center gap-2 px-6 py-2.5 text-red-600 hover:text-white border border-red-200 hover:bg-red-600 rounded-full transition-all duration-200 hover:shadow-lg hover:shadow-red-100"
+            className="flex items-center gap-1 px-4 py-2 text-sm text-red-600 hover:text-white border border-red-200 hover:bg-red-600 rounded transition-all duration-200"
           >
             <Trash2 className="w-4 h-4" />
             Excluir
           </button>
+
+          {/* Botão de editar */}
           <Link
             to={`/lideranca/editar/${leader.id}`}
-            className="flex items-center gap-2 px-6 py-2.5 text-blue-600 hover:text-white border border-blue-200 hover:bg-blue-600 rounded-full transition-all duration-200 hover:shadow-lg hover:shadow-blue-100"
+            className="flex items-center gap-1 px-4 py-2 text-sm text-blue-600 hover:text-white border border-blue-200 hover:bg-blue-600 rounded transition-all duration-200"
           >
             <Edit2 className="w-4 h-4" />
             Editar
@@ -32,7 +50,7 @@ export default function LeaderProfileInfo({ leader, onDelete }: LeaderProfileInf
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <p className="text-gray-500 text-sm">Nome</p>
           <p className="font-medium mt-1">{leader.name}</p>
@@ -55,7 +73,7 @@ export default function LeaderProfileInfo({ leader, onDelete }: LeaderProfileInf
 
         <div>
           <p className="text-gray-500 text-sm">Filhos</p>
-          <p className="font-medium mt-1">{leader.children} filho(s)</p>
+          <p className="font-medium mt-1">{leader.children || 0} filho(s)</p>
         </div>
 
         <div>
@@ -86,3 +104,6 @@ export default function LeaderProfileInfo({ leader, onDelete }: LeaderProfileInf
     </div>
   );
 }
+
+
+

@@ -23,10 +23,10 @@ export default function ForgotPassword() {
   });
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
-    if (!recaptchaValue) {
-      toast.error('Por favor, complete o reCAPTCHA');
-      return;
-    }
+    // if (!recaptchaValue) {
+    //   toast.error('Por favor, complete o reCAPTCHA');
+    //   return;
+    // }
 
     try {
       setLoading(true);
@@ -41,7 +41,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy-900 via-blue-800 to-cyan-700 flex items-center justify-center p-4">
+    <div className="min-h-screen  bg-gradient-to-r from-[#0b1728] to-[#102a4c] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-12">
           <img src="/logo.svg" alt="Eleitor Pro" className="h-24 mx-auto mb-8" />
@@ -58,7 +58,7 @@ export default function ForgotPassword() {
             </div>
             <h2 className="text-2xl font-semibold text-gray-900 mb-3">Email Enviado!</h2>
             <p className="text-gray-600 mb-8">
-              Verifique sua caixa de entrada e siga as instruções para recuperar sua senha.
+              Verifique sua caixa de entrada e siga as instruções para recuperar sua Senha.
             </p>
             <Link
               to="/login"
@@ -89,17 +89,18 @@ export default function ForgotPassword() {
               )}
             </div>
 
-            <div className="flex justify-center">
+            {/* <div className="flex justify-center">
               <ReCAPTCHA
                 sitekey="6Lf1eowqAAAAAJ72Ow6O0n7p7Pp6CXUVrhHxp9bG"
                 onChange={(value) => setRecaptchaValue(value)}
               />
-            </div>
+            </div> */}
 
             <button
               type="submit"
-              disabled={loading || !recaptchaValue}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              // disabled={loading || !recaptchaValue}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#13db63] to-[#02bde8]  hover:from-[#02bde8] hover:to-[#13db63] text-white py-3 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Enviando...' : 'Enviar Email'}
             </button>

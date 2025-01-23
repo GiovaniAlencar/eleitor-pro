@@ -10,20 +10,43 @@ import { useLeaders } from '../../hooks/useLeaders';
 import { exportToCSV } from '../../utils/export';
 import { leaderService } from '../../services/leader.service';
 import { useDebounce } from '../../hooks/useDebounce';
+import LoadingScreen from '../../components/Common/LoadingScreen'; // Importando o LoadingScreen
 
 export default function ListaLiderancas() {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]); // Novo estado para armazenar as cidades
   const { leaders, loading, error, totalPages, loadLeaders, deleteLeader } = useLeaders();
   const debouncedSearch = useDebounce(search, 500);
+
+  const [isFilterChanging, setIsFilterChanging] = useState(false); // Adicionado para controle de filtros
+
+
+  // Carregar as cidades dinâmicas da API (substitua por sua API real)
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const response = await leaderService.getCityStatistics(); // Supondo que a função que obtém as cidades da API seja essa
+        const cityList = response?.city_stats?.map((city: { city: string }) => city.city);
+        setCities(cityList || []); // Atualizar o estado com as cidades
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+      }
+    };
+    fetchCities();
+  }, []);
 
   const filterOptions = [
     { label: 'Ativos', value: 'active', group: 'Status' },
     { label: 'Inativos', value: 'inactive', group: 'Status' },
-    { label: 'São Paulo', value: 'sao-paulo', group: 'Cidades' },
-    { label: 'Rio de Janeiro', value: 'rio-de-janeiro', group: 'Cidades' },
-    { label: 'Belo Horizonte', value: 'belo-horizonte', group: 'Cidades' }
+    ...(cities.length > 0
+      ? cities.map(city => ({
+        label: city,
+        value: city,
+        group: 'Cidades'
+      }))
+      : [])
   ];
 
   useEffect(() => {
@@ -31,9 +54,9 @@ export default function ListaLiderancas() {
       page: currentPage,
       search: debouncedSearch,
       status: selectedFilters.find(f => ['active', 'inactive'].includes(f)),
-      city: selectedFilters.find(f => ['sao-paulo', 'rio-de-janeiro', 'belo-horizonte'].includes(f))
+      city: selectedFilters.filter(f => cities.includes(f))
     });
-  }, [currentPage, debouncedSearch, selectedFilters, loadLeaders]);
+  }, [currentPage, debouncedSearch, selectedFilters, cities, loadLeaders]);
 
   const handleDelete = async (id: number) => {
     const success = await deleteLeader(id);
@@ -67,7 +90,7 @@ export default function ListaLiderancas() {
         Status: leader.status === 'active' ? 'Ativo' : 'Inativo',
         'Total Eleitores': leader.voters_count
       }));
-      
+
       exportToCSV(formattedData, `liderancas-${new Date().toISOString().split('T')[0]}.csv`);
     } catch (error) {
       console.error('Error exporting leaders:', error);
@@ -85,7 +108,7 @@ export default function ListaLiderancas() {
   return (
     <div className="p-6">
       <Toaster position="top-right" />
-      
+
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-96">
@@ -106,9 +129,9 @@ export default function ListaLiderancas() {
             className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors w-full md:w-auto"
           >
             <UserPlus className="w-5 h-5" />
-            <span>CADASTRAR NOVO</span>
+            <span>CADASTRAR</span>
           </Link>
-          <button 
+          <button
             onClick={handleExport}
             className="flex items-center justify-center gap-2 px-4 py-2 text-cyan-500 bg-white border border-cyan-500 rounded-lg hover:bg-cyan-50 transition-colors w-full md:w-auto"
           >
@@ -144,7 +167,7 @@ export default function ListaLiderancas() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                    Carregando...
+                    <LoadingScreen message="Carregando lideranças..." />
                   </td>
                 </tr>
               ) : leaders.length === 0 ? (
@@ -161,28 +184,23 @@ export default function ListaLiderancas() {
                         <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                           <UserPlus className="w-4 h-4 text-gray-500" />
                         </div>
-                        <span className="font-medium text-sm text-gray-900">
-                          {getFirstName(leader.name)}
-                        </span>
+                        <span className="font-medium text-sm text-gray-900">{getFirstName(leader.name)}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">{leader.voters_count}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{leader.city}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                        leader.status === 'active'
+                      <span
+                        className={`px-2 py-0.5 text-xs font-medium rounded-full ${leader.status === 'active'
                           ? 'text-green-700 bg-green-100'
                           : 'text-red-700 bg-red-100'
-                      }`}>
+                          }`}
+                      >
                         {leader.status === 'active' ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <LeaderActions
-                        id={leader.id}
-                        whatsapp={leader.whatsapp}
-                        onDelete={handleDelete}
-                      />
+                      <LeaderActions id={leader.id} whatsapp={leader.whatsapp} onDelete={handleDelete} />
                     </td>
                   </tr>
                 ))

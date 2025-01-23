@@ -20,7 +20,44 @@ export default function VoterFormFields({
   loadingCep,
   isEditing
 }: VoterFormFieldsProps) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = form;
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = form;
+
+  // Função para buscar coordenadas
+  const fetchCoordinates = async () => {
+    const address = form.getValues('address');
+    const number = form.getValues('number');
+    const neighborhood = form.getValues('neighborhood');
+    const city = form.getValues('city');
+    const state = form.getValues('state');
+    
+    if (address && neighborhood) {
+      const query = `${address}+${number}+${neighborhood}+${city}+${state}`;
+      
+      // Substitua 'YOUR_API_KEY' pela sua chave de API do Google
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=AIzaSyDWgYVXY2IaVNW-PvONdyLwaY9dEtBm0U0`;
+      
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.status === 'OK' && data.results.length > 0) {
+          const latitude = data.results[0].geometry.location.lat;
+          const longitude = data.results[0].geometry.location.lng;
+  
+          setValue('latitude', latitude); // Atualiza o campo de latitude
+          setValue('longitude', longitude); // Atualiza o campo de longitude
+        }
+      } catch (error) {
+        console.error('Erro ao buscar coordenadas:', error);
+      }
+    }
+  };
+  
+
+  // UseEffect para disparar a busca quando os campos "endereço" ou "bairro" mudarem
+  const handleAddressOrNeighborhoodChange = () => {
+    fetchCoordinates();
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl shadow-sm p-8">
@@ -42,7 +79,7 @@ export default function VoterFormFields({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
           <div className="relative">
             <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
             <input
@@ -54,6 +91,38 @@ export default function VoterFormFields({
           </div>
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Gênero</label>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex items-center gap-1 p-1 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+              <input
+                {...register('gender')}
+                type="radio"
+                value="male"
+                className="w-5 h-5 md:w-6 md:h-6 lg:w-5 lg:h-5 text-blue-500"
+              />
+              <User className="w-5 h-5 text-blue-500" />
+              <span className="text-sm md:text-base lg:text-sm">Masculino</span>
+            </label>
+            <label className="flex items-center gap-1 p-2 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+              <input
+                {...register('gender')}
+                type="radio"
+                value="female"
+                className="w-5 h-5 md:w-6 md:h-6 lg:w-5 lg:h-5 text-pink-500"
+              />
+              <User className="w-5 h-5 text-pink-600" />
+              <span className="text-sm md:text-base lg:text-sm">Feminino</span>
+            </label>
+          </div>
+          {errors.gender && (
+            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-4 h-4" />
+              {errors.gender.message}
+            </p>
           )}
         </div>
 
@@ -104,6 +173,7 @@ export default function VoterFormFields({
               type="text"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Nome da rua"
+              onBlur={handleAddressOrNeighborhoodChange} // Aciona a busca das coordenadas
             />
           </div>
           {errors.address && (
@@ -118,6 +188,7 @@ export default function VoterFormFields({
             <input
               {...register('number')}
               type="text"
+              onBlur={handleAddressOrNeighborhoodChange}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Número"
             />
@@ -136,6 +207,7 @@ export default function VoterFormFields({
               type="text"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Bairro"
+              onBlur={handleAddressOrNeighborhoodChange} // Aciona a busca das coordenadas
             />
           </div>
           {errors.neighborhood && (
@@ -160,6 +232,22 @@ export default function VoterFormFields({
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+          <div className="relative">
+            <Building2 className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <input
+              {...register('state')}
+              type="text"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Estado"
+            />
+          </div>
+          {errors.state && (
+            <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
+          )}
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Data de Nascimento</label>
           <div className="relative">
             <Calendar className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
@@ -179,9 +267,15 @@ export default function VoterFormFields({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Estado Civil</label>
           <div className="relative">
-            <Users className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-            <select 
+            <Users className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 hidden md:block" />
+            <select
               {...register('marital_status')}
+              style={{
+                backgroundColor: 'white',
+                width: window.innerWidth <= 768 ? '100%' : '',
+                height: window.innerWidth <= 768 ? '40px' : '42px', // Altura maior apenas para telas menores
+                fontSize: window.innerWidth <= 768 ? '16px' : '14px', // Ajusta o tamanho da fonte também
+              }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Selecione...</option>
@@ -207,10 +301,38 @@ export default function VoterFormFields({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-sm transition-all disabled:opacity-50"
+          className="px-6 py-2 bg-gradient-to-r from-[#13db63] to-[#02bde8] hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-sm transition-all"
         >
-          {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Cadastrar')}
+          {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar' : 'Cadastrar')}
         </button>
+      </div>
+
+      <div>
+        <div className="relative">
+          <input
+            {...register('latitude')}
+            type="hidden"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Latitude"
+          />
+        </div>
+        {errors.latitude && (
+          <p className="mt-1 text-sm text-red-600">{errors.latitude.message}</p>
+        )}
+      </div>
+
+      <div>
+        <div className="relative">
+          <input
+            {...register('longitude')}
+            type="hidden"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Longitude"
+          />
+        </div>
+        {errors.longitude && (
+          <p className="mt-1 text-sm text-red-600">{errors.longitude.message}</p>
+        )}
       </div>
     </form>
   );

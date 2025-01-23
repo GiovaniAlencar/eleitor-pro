@@ -32,9 +32,16 @@ export function useAuth() {
       const { user } = await authService.login(email, password);
       setUser(user);
       notificationService.success('Login realizado com sucesso');
-      navigate('/');
+      // navigate('/');
+
+      // Verifica se o perfil do usuário está completo
+      if (!user.whatsapp || !user.city || !user.address) {
+        navigate('/editar-perfil'); // Redireciona para a edição do perfil
+      } else {
+        navigate('/'); // Redireciona para a página inicial ou dashboard
+      }
     } catch (error) {
-      notificationService.error('Email ou senha inválidos');
+      notificationService.error('Email ou Senha inválidos');
       throw error;
     }
   };
@@ -43,7 +50,7 @@ export function useAuth() {
     try {
       await authService.logout();
       setUser(null);
-      navigate('/login');
+      navigate('/testes');
       notificationService.success('Logout realizado com sucesso');
     } catch (error) {
       notificationService.error('Erro ao realizar logout');

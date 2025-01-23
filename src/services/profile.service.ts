@@ -21,9 +21,14 @@ export interface PasswordUpdateData {
 }
 
 export const profileService = {
+  async getProfile(): Promise<User> {
+    const response = await api.get('/profile');
+    return response.data.data;
+  },
+
   async updateProfile(data: ProfileUpdateData): Promise<User> {
     const response = await api.put('/profile', data);
-    return response.data;
+    return response.data.data;
   },
 
   async updatePassword(data: PasswordUpdateData): Promise<void> {
@@ -33,12 +38,16 @@ export const profileService = {
   async updatePhoto(photo: File): Promise<{ photo_url: string }> {
     const formData = new FormData();
     formData.append('photo', photo);
-
+  
     const response = await api.post('/profile/photo', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data;
+  
+    console.log("API Response:", response.data);
+    return response.data.data;
+    window.location.reload(true);
+
   }
 };

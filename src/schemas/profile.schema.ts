@@ -10,15 +10,15 @@ export const profileSchema = z.object({
   neighborhood: z.string().min(3, 'Bairro é obrigatório'),
   city: z.string().min(3, 'Cidade é obrigatória'),
   birth_date: z.string().min(1, 'Data de nascimento é obrigatória'),
-  marital_status: z.string().min(1, 'Estado civil é obrigatório')
+  marital_status: z.string().optional()
 });
 
 export const passwordSchema = z.object({
   current_password: z.string().min(8, 'Senha atual é obrigatória'),
-  password: z.string().min(8, 'Nova senha deve ter no mínimo 8 caracteres'),
-  password_confirmation: z.string().min(8, 'Confirmação de senha é obrigatória')
+  password: z.string().min(8, 'Nova Senha deve ter no mínimo 8 caracteres'),
+  password_confirmation: z.string().min(8, 'Confirmação de Senha é obrigatória')
 }).refine(data => data.password === data.password_confirmation, {
-  message: 'As senhas não conferem',
+  message: 'As Senhas não conferem',
   path: ['password_confirmation']
 });
 

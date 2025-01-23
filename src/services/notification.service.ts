@@ -18,21 +18,39 @@ export interface CreateNotificationData {
 
 export const notificationService = {
   async getNotifications(): Promise<Notification[]> {
-    const response = await api.get('/notifications');
-    return response.data;
+    try {
+      const response = await api.get('/notifications');
+      return response.data;
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+      return [];
+    }
   },
 
   async markAsRead(id: number): Promise<void> {
-    await api.put(`/notifications/${id}/read`);
+    try {
+      await api.put(`/notifications/${id}/read`);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   },
 
   async markAllAsRead(): Promise<void> {
-    await api.put('/notifications/read-all');
+    try {
+      await api.put('/notifications/read-all');
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   },
 
   async createNotification(data: CreateNotificationData): Promise<Notification> {
-    const response = await api.post('/notifications', data);
-    return response.data;
+    try {
+      const response = await api.post('/notifications', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+    }
   },
 
   // Toast notifications

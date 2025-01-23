@@ -71,7 +71,7 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=eleitor_pro
 DB_USERNAME=seu_usuario
-DB_PASSWORD=sua_senha
+DB_PASSWORD=sua_Senha
 
 # Execute as migrações
 php artisan migrate
@@ -80,14 +80,14 @@ php artisan migrate
 php artisan serve
 ```
 
-O backend estará disponível em `http://localhost:8000`
+O backend estará disponível em `http://192.168.2.105:8000`
 
 ### 4. Configuração do Frontend
 
 Crie um arquivo `.env` na raiz do projeto frontend com as seguintes variáveis:
 
 ```env
-VITE_API_URL=http://localhost:8000/api
+VITE_API_URL=https://api.graficabomjesus.com.br/api
 VITE_MAPBOX_TOKEN=seu_token_do_mapbox
 ```
 

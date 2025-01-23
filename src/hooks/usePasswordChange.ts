@@ -18,7 +18,7 @@ export function usePasswordChange() {
       notificationService.success('Senha alterada com sucesso');
       navigate('/configuracoes');
     } catch (error) {
-      notificationService.error('Erro ao alterar senha');
+      notificationService.error('Erro ao alterar Senha');
     } finally {
       setLoading(false);
     }

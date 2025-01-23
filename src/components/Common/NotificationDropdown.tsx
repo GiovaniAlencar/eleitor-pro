@@ -104,8 +104,7 @@ export default function NotificationDropdown() {
               onClick={() => setIsOpen(false)}
               className="w-full text-sm text-cyan-500 hover:text-cyan-600 flex items-center justify-center gap-2"
             >
-              Ver todas as notificações
-              <ExternalLink className="w-4 h-4" />
+              Notificações limpas em 24h
             </button>
           </div>
         </div>

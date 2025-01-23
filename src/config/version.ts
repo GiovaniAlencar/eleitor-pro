@@ -1,3 +1,5 @@
+import { getCurrentVersion } from './version';
+
 interface Version {
   name: string;
   timestamp: string;
@@ -17,6 +19,5 @@ export const getVersionInfo = async (): Promise<Version> => {
 };
 
 export const setVersion = (version: string): void => {
-  // This function would be implemented when we add version switching functionality
   console.log(`Switching to version: ${version}`);
 };

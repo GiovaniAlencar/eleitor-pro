@@ -27,16 +27,20 @@ export default function LeaderProfileHeader({ leader, onPhotoChange }: LeaderPro
     <div className="bg-white rounded-xl shadow-lg p-8 text-center">
       <div className="relative inline-block">
         <img
-          src={leader.photo_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150'}
+          src={
+            leader.photo_url
+              ? `${import.meta.env.VITE_STORAGE_URL}/${leader.photo_url}`
+              : 'https://via.placeholder.com/150'
+          }
           alt={leader.name}
           className="w-32 h-32 rounded-full mx-auto ring-4 ring-white shadow-xl object-cover"
         />
         <label className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors">
           <input
             type="file"
-            className="hidden"
             accept="image/*"
-            onChange={handlePhotoChange}
+            className="hidden"
+            onChange={onPhotoChange}
           />
           <Camera className="w-5 h-5 text-gray-600" />
         </label>
@@ -62,9 +66,9 @@ export default function LeaderProfileHeader({ leader, onPhotoChange }: LeaderPro
         </div>
         <div className="bg-gray-50 rounded-lg p-4">
           <span className="text-3xl font-bold text-gray-900">
-            {leader.statistics.meetings_count}
+            {leader.voteGoal || 0}
           </span>
-          <p className="text-gray-500 text-sm">Reuniões</p>
+          <p className="text-gray-500 text-sm">Meta de votos</p>
         </div>
       </div>
     </div>

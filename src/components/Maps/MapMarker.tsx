@@ -1,12 +1,12 @@
 import { Marker } from 'react-map-gl';
 import { MapPin, Users } from 'lucide-react';
 
-interface MapMarkerProps {
-  latitude: number;
-  longitude: number;
-  type: 'eleitor' | 'lideranca';
-  onClick?: () => void;
-}
+// interface MapMarkerProps {
+//   latitude: number;
+//   longitude: number;
+//   type: 'eleitor' | 'lideranca';
+//   onClick?: () => void;
+// }
 
 export default function MapMarker({ latitude, longitude, type, onClick }: MapMarkerProps) {
   return (

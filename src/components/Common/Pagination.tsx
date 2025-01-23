@@ -64,7 +64,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
               className={`
                 min-w-[2.5rem] h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors
                 ${currentPage === page
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-[#13db63] to-[#02bde8] text-white shadow-sm'
                   : 'text-gray-600 hover:bg-gray-100'
                 }
               `}

@@ -1,37 +1,88 @@
 import { Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import ElectoralMap from '../components/Maps/ElectoralMap';
 import FilterButton from '../components/Common/FilterButton';
-
-const mockMarkers = [
-  { latitude: -23.5505, longitude: -46.6333, type: 'eleitor' as const },
-  { latitude: -23.5605, longitude: -46.6433, type: 'lideranca' as const },
-  { latitude: -23.5705, longitude: -46.6533, type: 'eleitor' as const },
-  { latitude: -23.5805, longitude: -46.6633, type: 'lideranca' as const }
-];
+import { mapService, MapStats, MapMarker } from '../services/map.service';
+import { formatNumber } from '../utils/format';
+import LoadingScreen from '../components/Common/LoadingScreen'; // Componente de tela de loading
 
 export default function MapaEleitoral() {
+  const [stats, setStats] = useState<MapStats | null>(null);
+  const [markers, setMarkers] = useState<MapMarker[]>([]);
+  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<'voter' | 'leader' | ''>('');
+  const [loading, setLoading] = useState<boolean>(true); // Estado para controle de carregamento
+
   const filterOptions = [
-    { label: 'Eleitores', value: 'eleitores', group: 'Tipo' },
-    { label: 'Lideranças', value: 'liderancas', group: 'Tipo' },
-    { label: 'Pirapora', value: 'pirapora', group: 'Cidades' },
-    { label: 'Osasco', value: 'osasco', group: 'Cidades' },
-    { label: 'Carapicuíba', value: 'carapicuiba', group: 'Cidades' },
-    { label: 'Centro', value: 'centro', group: 'Bairros' },
-    { label: 'Vila Nova', value: 'vila-nova', group: 'Bairros' },
-    { label: 'Jardim das Flores', value: 'jardim-flores', group: 'Bairros' }
+    { label: 'Eleitores', value: 'voter', group: 'Tipo' },
+    { label: 'Lideranças', value: 'leader', group: 'Tipo' },
+    ...(stats?.city_stats
+      ?.filter(city => city.city && city.city.trim() !== '') // Excluir cidades nulas ou vazias
+      .map(city => ({
+        label: city.city,
+        value: city.city,
+        group: 'Cidades'
+      })) || [])
   ];
 
-  const handleFilter = (selected: string[]) => {
-    const showEleitores = selected.includes('eleitores');
-    const showLiderancas = selected.includes('liderancas');
-    
-    return mockMarkers.filter(marker => {
-      if (!showEleitores && !showLiderancas) return true;
-      if (showEleitores && marker.type === 'eleitor') return true;
-      if (showLiderancas && marker.type === 'lideranca') return true;
-      return false;
-    });
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true); // Inicia o carregamento
+      try {
+        const [statsData, markersData] = await Promise.all([
+          mapService.getStats(),
+          mapService.getMarkers()
+        ]);
+
+        setStats(statsData);
+        setMarkers(markersData);
+      } catch (error) {
+        console.error('Error loading map data:', error);
+      } finally {
+        setLoading(false); // Finaliza o carregamento
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <LoadingScreen message="Carregando mapa eleitoral..." /> {/* Componente de carregamento */}
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return null;
+  }
+
+  const handleFilter = async (selected: string[]) => {
+    try {
+      // Filtra os tipos 'voter' e 'leader' a partir da seleção
+      const types = selected.filter(s => ['voter', 'leader'].includes(s));
+  
+      // Filtra todas as cidades (excluindo 'voter' e 'leader')
+      const cities = selected.filter(s => !['voter', 'leader'].includes(s));
+  
+      // Atualiza os estados com os tipos e as cidades selecionadas
+      setSelectedType(types.join(', ') || ''); // Agora suporta múltiplos tipos
+      setSelectedCity(cities.join(', ') || '');
+  
+      // Chama a API com os tipos e todas as cidades
+      const markersData = await mapService.getMarkers({
+        type: types, // Envia o array de tipos
+        cities // Envia o array de cidades
+      });
+  
+      // Atualiza os marcadores no mapa
+      setMarkers(markersData);
+    } catch (error) {
+      console.error('Error filtering markers:', error);
+    }
   };
+  
 
   return (
     <div className="p-6">
@@ -47,52 +98,60 @@ export default function MapaEleitoral() {
               options={filterOptions}
               onFilter={handleFilter}
             />
-            <button className="flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors">
-              <Download className="w-5 h-5" />
-              <span className="hidden sm:inline">EXPORTAR</span>
-            </button>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+      {/* <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl border border-blue-100">
             <div className="flex flex-col items-center">
-              <p className="text-4xl font-bold text-blue-600 mb-2">150</p>
-              <p className="text-sm font-medium text-gray-600">Total Eleitores</p>
-              <p className="text-xs text-blue-600 font-medium mt-2 bg-blue-50 px-3 py-1 rounded-full">
-                Pirapora
+              <p className="text-4xl font-bold text-blue-600 mb-2">
+                {formatNumber(stats?.total_voters || 0)}
               </p>
+              <p className="text-sm font-medium text-gray-600">Total Eleitores</p>
+              {selectedCity && (
+                <p className="text-xs text-blue-600 font-medium mt-2 bg-blue-50 px-3 py-1 rounded-full">
+                  {selectedCity}
+                </p>
+              )}
             </div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-emerald-50 to-white p-6 rounded-xl border border-emerald-100">
             <div className="flex flex-col items-center">
-              <p className="text-4xl font-bold text-emerald-600 mb-2">75</p>
+              <p className="text-4xl font-bold text-emerald-600 mb-2">
+                {formatNumber(stats?.gender_stats.male || 0)}
+              </p>
               <p className="text-sm font-medium text-gray-600">Homens</p>
               <p className="text-xs text-emerald-600 font-medium mt-2 bg-emerald-50 px-3 py-1 rounded-full">
-                50%
+                {stats && stats.gender_stats && stats.total_voters > 0
+                  ? Math.round((stats.gender_stats.male / stats.total_voters) * 100)
+                  : 0}%
               </p>
             </div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
             <div className="flex flex-col items-center">
-              <p className="text-4xl font-bold text-purple-600 mb-2">75</p>
+              <p className="text-4xl font-bold text-purple-600 mb-2">
+                {formatNumber(stats?.gender_stats.female || 0)}
+              </p>
               <p className="text-sm font-medium text-gray-600">Mulheres</p>
               <p className="text-xs text-purple-600 font-medium mt-2 bg-purple-50 px-3 py-1 rounded-full">
-                50%
+                {stats && stats.gender_stats && stats.total_voters > 0
+                  ? Math.round((stats.gender_stats.female / stats.total_voters) * 100)
+                  : 0}%
               </p>
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="rounded-xl overflow-hidden">
           <ElectoralMap
-            markers={mockMarkers}
+            markers={markers}
             onMarkerClick={marker => console.log('Marker clicked:', marker)}
           />
         </div>

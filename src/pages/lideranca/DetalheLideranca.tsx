@@ -3,41 +3,72 @@ import { useLeaderProfile } from '../../hooks/useLeaderProfile';
 import LeaderProfileHeader from '../../components/Leaders/LeaderProfileHeader';
 import LeaderProfileInfo from '../../components/Leaders/LeaderProfileInfo';
 import AlertDialog from '../../components/Common/AlertDialog';
-import { useState } from 'react';
+import ImageCropper from '../../components/Common/ImageCropper';
+import { useState, useEffect } from 'react';
 import { leaderService } from '../../services/leader.service';
 import { toast } from 'sonner';
 import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import LoadingScreen from '../../components/Common/LoadingScreen'; // Importando o LoadingScreen
 
 export default function DetalheLideranca() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { leader, loading, error, updatePhoto } = useLeaderProfile(Number(id));
+  const { leader, updatePhoto, loading, error } = useLeaderProfile(Number(id)); // Pegando o estado de loading e erro
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  // Estados para o Cropper
+  const [showCropper, setShowCropper] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (error) {
+      toast.error('Erro ao carregar os dados da liderança');
+    }
+  }, [error]);
 
   if (loading) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-gray-500">Carregando...</p>
+      <div className="flex justify-center items-center min-h-screen">
+        <LoadingScreen message="Carregando dados da liderança..." /> {/* Exibe a tela de loading */}
       </div>
     );
   }
 
-  if (error || !leader) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-red-600">{error || 'Liderança não encontrada'}</p>
-      </div>
-    );
+  if (!leader) {
+    return null;
   }
 
-  const handleDelete = async () => {
+  // Método para capturar a imagem e abrir o Cropper
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target?.files?.[0]; // Garante que `files` exista antes de acessar o índice
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+        setShowCropper(true);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      console.error('Nenhum arquivo foi selecionado.');
+    }
+  };
+
+  // Método para enviar a imagem recortada
+  const handleCropComplete = async (croppedImage: string) => {
     try {
-      await leaderService.deleteLeader(leader.id);
-      toast.success('Liderança excluída com sucesso');
-      navigate('/lideranca');
-    } catch (err) {
-      toast.error('Erro ao excluir liderança');
+      const response = await fetch(croppedImage);
+      const blob = await response.blob();
+      const file = new File([blob], 'cropped-image.jpg', { type: blob.type });
+
+      // Atualiza a foto usando o método da API
+      await updatePhoto(file);
+      toast.success('Foto atualizada com sucesso!');
+      setShowCropper(false);
+      setSelectedImage(null);
+    } catch (error) {
+      toast.error('Erro ao atualizar a foto');
+      console.error(error);
     }
   };
 
@@ -57,7 +88,7 @@ export default function DetalheLideranca() {
         <div className="lg:w-1/3">
           <LeaderProfileHeader
             leader={leader}
-            onPhotoChange={updatePhoto}
+            onPhotoChange={handleImageSelect} // Passa o método de seleção de imagem
           />
         </div>
 
@@ -65,6 +96,13 @@ export default function DetalheLideranca() {
           <LeaderProfileInfo
             leader={leader}
             onDelete={() => setShowDeleteDialog(true)}
+            onStatusChange={async () => {
+              // Alteração de status (pode ser extraído para uma função separada)
+              const newStatus = leader.status === 'active' ? 'inactive' : 'active';
+              await leaderService.updateLeaderStatus(leader.id, newStatus, leader.name);
+              toast.success(`Status alterado para ${newStatus}`);
+              window.location.reload();
+            }}
           />
         </div>
       </div>
@@ -72,13 +110,30 @@ export default function DetalheLideranca() {
       <AlertDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}
-        onConfirm={handleDelete}
+        onConfirm={async () => {
+          try {
+            await leaderService.deleteLeader(leader.id);
+            toast.success('Liderança excluída com sucesso');
+            navigate('/lideranca');
+          } catch {
+            toast.error('Erro ao excluir liderança');
+          }
+        }}
         title="Confirmar Exclusão"
         message="Tem certeza que deseja excluir esta liderança? Esta ação não pode ser desfeita."
         confirmText="Excluir"
         cancelText="Cancelar"
         type="danger"
       />
+
+      {/* Modal do Cropper */}
+      {showCropper && selectedImage && (
+        <ImageCropper
+          image={selectedImage}
+          onCropComplete={handleCropComplete}
+          onClose={() => setShowCropper(false)}
+        />
+      )}
     </div>
   );
 }

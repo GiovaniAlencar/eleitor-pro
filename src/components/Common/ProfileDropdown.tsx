@@ -34,7 +34,7 @@ export default function ProfileDropdown() {
       >
         {user.photo_url ? (
           <img
-            src={user.photo_url}
+          src={`${import.meta.env.VITE_STORAGE_URL}/${user.photo_url}` || "https://via.placeholder.com/150"} 
             alt={user.name}
             className="w-8 h-8 rounded-full object-cover"
           />
@@ -49,7 +49,7 @@ export default function ProfileDropdown() {
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
           <div className="p-4 border-b border-gray-100">
             <p className="font-medium text-gray-900">{user.name}</p>
-            <p className="text-sm text-gray-500">{user.role}</p>
+            {/* <p className="text-sm text-gray-500">{user.role}</p> */}
           </div>
 
           <div className="p-2">

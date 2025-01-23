@@ -13,14 +13,49 @@ interface LeaderFormFieldsProps {
   isEditing?: boolean;
 }
 
-export default function LeaderFormFields({ 
-  form, 
-  onSubmit, 
+export default function LeaderFormFields({
+  form,
+  onSubmit,
   handleCepChange,
   loadingCep,
-  isEditing 
+  isEditing
 }: LeaderFormFieldsProps) {
-  const { register, handleSubmit, formState: { errors } } = form;
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = form;
+  // Função para buscar coordenadas
+  const fetchCoordinates = async () => {
+    const address = form.getValues('address');
+    const number = form.getValues('number');
+    const neighborhood = form.getValues('neighborhood');
+    const city = form.getValues('city');
+    const state = form.getValues('state');
+
+    if (address && neighborhood) {
+      const query = `${address}+${number}+${neighborhood}+${city}+${state}`;
+
+      // Substitua 'YOUR_API_KEY' pela sua chave de API do Google
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=AIzaSyDWgYVXY2IaVNW-PvONdyLwaY9dEtBm0U0`;
+
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.status === 'OK' && data.results.length > 0) {
+          const latitude = data.results[0].geometry.location.lat;
+          const longitude = data.results[0].geometry.location.lng;
+
+          setValue('latitude', latitude); // Atualiza o campo de latitude
+          setValue('longitude', longitude); // Atualiza o campo de longitude
+        }
+      } catch (error) {
+        console.error('Erro ao buscar coordenadas:', error);
+      }
+    }
+  };
+
+  // UseEffect para disparar a busca quando os campos "endereço" ou "bairro" mudarem
+  const handleAddressOrNeighborhoodChange = () => {
+    fetchCoordinates();
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl shadow-sm p-8">
@@ -38,6 +73,53 @@ export default function LeaderFormFields({
           </div>
           {errors.name && (
             <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+          )}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Meta de votos</label>
+          <div className="relative">
+            <Calendar className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <input
+              {...register('voteGoal')}
+              type="text"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Meta de votos"
+            />
+          </div>
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Gênero</label>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex items-center gap-1 p-1 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+              <input
+                {...register('gender')}
+                type="radio"
+                value="male"
+                className="w-5 h-5 md:w-6 md:h-6 lg:w-5 lg:h-5 text-blue-500"
+              />
+              <User className="w-5 h-5 text-blue-500" />
+              <span className="text-sm md:text-base lg:text-sm">Masculino</span>
+            </label>
+            <label className="flex items-center gap-1 p-2 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+              <input
+                {...register('gender')}
+                type="radio"
+                value="female"
+                className="w-5 h-5 md:w-6 md:h-6 lg:w-5 lg:h-5 text-pink-500"
+              />
+              <User className="w-5 h-5 text-pink-600" />
+              <span className="text-sm md:text-base lg:text-sm">Feminino</span>
+            </label>
+          </div>
+          {errors.gender && (
+            <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle className="w-4 h-4" />
+              {errors.gender.message}
+            </p>
           )}
         </div>
 
@@ -120,6 +202,7 @@ export default function LeaderFormFields({
               type="text"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Número"
+              onBlur={handleAddressOrNeighborhoodChange}
             />
           </div>
           {errors.number && (
@@ -136,6 +219,7 @@ export default function LeaderFormFields({
               type="text"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Bairro"
+              onBlur={handleAddressOrNeighborhoodChange}
             />
           </div>
           {errors.neighborhood && (
@@ -152,10 +236,27 @@ export default function LeaderFormFields({
               type="text"
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Cidade"
+              onBlur={handleAddressOrNeighborhoodChange}
             />
           </div>
           {errors.city && (
             <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+          <div className="relative">
+            <Building2 className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <input
+              {...register('state')}
+              type="text"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Estado"
+            />
+          </div>
+          {errors.state && (
+            <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
           )}
         </div>
 
@@ -179,12 +280,21 @@ export default function LeaderFormFields({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Estado Civil</label>
           <div className="relative">
-            <Users className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-            <select 
+            {/* Ícone Users */}
+            <Users className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden md:block" />
+
+            {/* Select ajustado */}
+            <select
               {...register('marital_status')}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              defaultValue=""
+              style={{
+                height: window.innerWidth <= 768 ? '44px' : '42px', // Altura maior apenas para telas menores
+                width: window.innerWidth <= 768 ? '100%' : '100%', // Altura maior apenas para telas menores
+                paddingLeft: '2.5rem', // Espaço suficiente para o ícone
+              }}
+              className="w-full py-2 bg-white border border-gray-200 rounded-xl text-gray-900 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
             >
-              <option value="">Selecione...</option>
+              <option value="" disabled>Selecione uma opção</option>
               <option value="solteiro">Solteiro(a)</option>
               <option value="casado">Casado(a)</option>
               <option value="divorciado">Divorciado(a)</option>
@@ -193,6 +303,23 @@ export default function LeaderFormFields({
           </div>
           {errors.marital_status && (
             <p className="mt-1 text-sm text-red-600">{errors.marital_status.message}</p>
+          )}
+        </div>
+
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Número de filhos</label>
+          <div className="relative">
+            <Users className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <input
+              {...register('children')}
+              type="text"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Número de filhos"
+            />
+          </div>
+          {errors.children && (
+            <p className="mt-1 text-sm text-red-600">{errors.children.message}</p>
           )}
         </div>
 
@@ -224,10 +351,41 @@ export default function LeaderFormFields({
         </Link>
         <button
           type="submit"
-          className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-sm transition-all"
+          disabled={isSubmitting}
+          className="px-6 py-2 bg-gradient-to-r from-[#13db63] to-[#02bde8] hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-sm transition-all"
         >
-          {isEditing ? 'Salvar Alterações' : 'Cadastrar'}
+          {isSubmitting ? 'Salvando...' : (isEditing ? 'Salvar' : 'Cadastrar')}
         </button>
+      </div>
+      <div>
+        {/* <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label> */}
+        <div className="relative">
+          {/* <Building2 className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" /> */}
+          <input
+            {...register('latitude')}
+            type="hidden"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Cidade"
+          />
+        </div>
+        {errors.latitude && (
+          <p className="mt-1 text-sm text-red-600">{errors.latitude.message}</p>
+        )}
+      </div>
+      <div>
+        {/* <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label> */}
+        <div className="relative">
+          {/* <Building2 className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" /> */}
+          <input
+            {...register('longitude')}
+            type="hidden"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Cidade"
+          />
+        </div>
+        {errors.longitude && (
+          <p className="mt-1 text-sm text-red-600">{errors.longitude.message}</p>
+        )}
       </div>
     </form>
   );

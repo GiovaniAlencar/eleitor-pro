@@ -27,7 +27,7 @@ export function useProfile() {
       notificationService.success('Senha atualizada com sucesso');
       return true;
     } catch (err) {
-      notificationService.error('Erro ao atualizar senha');
+      notificationService.error('Erro ao atualizar Senha');
       return false;
     } finally {
       setLoading(false);

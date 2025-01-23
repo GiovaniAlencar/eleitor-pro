@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 30 30">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #00beea;
+      }
+
+      .cls-2 {
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+    </style>
+  </defs>
+  <!-- Generator: Adobe Illustrator 28.7.3, SVG Export Plug-In . SVG Version: 1.2.0 Build 164)  -->
+  <g>
+    <g id="Camada_1">
+      <circle class="cls-1" cx="15" cy="15" r="14.49"/>
+      <path class="cls-2" d="M18.71,21.85v-1.84c0-2.03-1.65-3.68-3.68-3.68h-5.52c-2.03,0-3.68,1.65-3.68,3.68v1.84"/>
+      <circle class="cls-2" cx="12.27" cy="8.97" r="3.68"/>
+      <path class="cls-2" d="M24.23,21.85v-1.84c0-1.68-1.14-3.14-2.76-3.56"/>
+      <path class="cls-2" d="M18.71,5.41c1.97.5,3.16,2.51,2.65,4.48-.33,1.3-1.35,2.32-2.65,2.65"/>
+    </g>
+  </g>
+</svg>
